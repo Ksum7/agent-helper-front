@@ -1,0 +1,108 @@
+import { useCallback, useRef, useState } from 'react';
+import { streamMessage } from '@/lib/stream';
+import type { StreamEvent, ToolCallState } from '@/types';
+
+export interface StreamState {
+  thinking: string;
+  content: string;
+  tools: ToolCallState[];
+  isStreaming: boolean;
+  error: string | null;
+}
+
+const initial: StreamState = {
+  thinking: '',
+  content: '',
+  tools: [],
+  isStreaming: false,
+  error: null,
+};
+
+export function useChatStream(onComplete: (finalContent: string) => void) {
+  const [state, setState] = useState<StreamState>(initial);
+  const abortRef = useRef<AbortController | null>(null);
+  const finalContentRef = useRef<string>('');
+
+  const reset = useCallback(() => {
+    setState(initial);
+    finalContentRef.current = '';
+  }, []);
+
+  const start = useCallback(
+    (sessionId: string, content: string) => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      finalContentRef.current = '';
+      setState({ ...initial, isStreaming: true });
+
+      streamMessage(sessionId, content, {
+        signal: controller.signal,
+        onEvent: (event: StreamEvent) => {
+          setState((prev) => {
+            switch (event.type) {
+              case 'thinking':
+                return { ...prev, thinking: prev.thinking + event.content };
+              case 'text':
+                return { ...prev, content: prev.content + event.content };
+              case 'tool_call': {
+                const id = event.id ?? `tool_${prev.tools.length}_${event.name}`;
+                return {
+                  ...prev,
+                  tools: [
+                    ...prev.tools,
+                    { id, name: event.name, args: event.args, done: false },
+                  ],
+                };
+              }
+              case 'tool_result': {
+                // mark the latest pending tool with this name as done
+                const tools = [...prev.tools];
+                for (let i = tools.length - 1; i >= 0; i--) {
+                  if (tools[i].name === event.name && !tools[i].done) {
+                    tools[i] = { ...tools[i], result: event.content, done: true };
+                    return { ...prev, tools };
+                  }
+                }
+                tools.push({
+                  id: `tool_${tools.length}_${event.name}`,
+                  name: event.name,
+                  result: event.content,
+                  done: true,
+                });
+                return { ...prev, tools };
+              }
+              case 'message':
+                finalContentRef.current = event.content;
+                return { ...prev, content: event.content };
+              case 'error':
+                return { ...prev, error: event.content };
+              default:
+                return prev;
+            }
+          });
+        },
+        onDone: () => {
+          const final = finalContentRef.current;
+          setState((prev) => ({ ...prev, isStreaming: false }));
+          if (final) onComplete(final);
+        },
+        onError: (err) => {
+          setState((prev) => ({
+            ...prev,
+            isStreaming: false,
+            error: err.message,
+          }));
+        },
+      });
+    },
+    [onComplete],
+  );
+
+  const abort = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setState((prev) => ({ ...prev, isStreaming: false }));
+  }, []);
+
+  return { state, start, abort, reset };
+}

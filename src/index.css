@@ -1,0 +1,92 @@
+@import 'highlight.js/styles/github-dark.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-bg text-text antialiased font-sans;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+
+.markdown-body {
+  @apply text-[15px] leading-relaxed text-text;
+}
+.markdown-body > *:first-child {
+  margin-top: 0;
+}
+.markdown-body > *:last-child {
+  margin-bottom: 0;
+}
+.markdown-body p {
+  @apply my-2;
+}
+.markdown-body h1 {
+  @apply mt-4 mb-2 text-xl font-semibold;
+}
+.markdown-body h2 {
+  @apply mt-4 mb-2 text-lg font-semibold;
+}
+.markdown-body h3 {
+  @apply mt-3 mb-2 text-base font-semibold;
+}
+.markdown-body ul {
+  @apply my-2 list-disc pl-6;
+}
+.markdown-body ol {
+  @apply my-2 list-decimal pl-6;
+}
+.markdown-body li {
+  @apply my-0.5;
+}
+.markdown-body blockquote {
+  @apply my-2 border-l-2 border-border pl-3 text-text-muted;
+}
+.markdown-body code:not(pre code) {
+  @apply rounded bg-bg-muted px-1.5 py-0.5 font-mono text-[0.85em];
+}
+.markdown-body pre code {
+  @apply bg-transparent p-0;
+}
+.markdown-body table {
+  @apply my-3 w-full border-collapse text-sm;
+}
+.markdown-body th,
+.markdown-body td {
+  @apply border border-border px-2 py-1 text-left;
+}
+.markdown-body th {
+  @apply bg-bg-subtle font-semibold;
+}
+.markdown-body hr {
+  @apply my-4 border-border;
+}

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(npm view *)",
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)",
+      "Bash(npm ci *)",
+      "Bash(npx nest *)",
+      "Bash(npm test *)",
+      "Bash(xargs wc *)",
+      "Bash(npm uninstall *)"
+    ]
+  }
+}

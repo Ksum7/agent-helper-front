@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Paperclip, Sparkles } from 'lucide-react';
@@ -9,7 +9,7 @@ import { FilesPanel } from '@/components/FilesPanel';
 import { useChatStream } from '@/hooks/useChatStream';
 import { useToastStore } from '@/store/toast';
 import type { Message } from '@/types';
-import { cn } from '@/lib/utils';
+import { cn, eventsToState } from '@/lib/utils';
 
 export function ChatSessionPage() {
   const { id = '' } = useParams<{ id: string }>();
@@ -17,9 +17,9 @@ export function ChatSessionPage() {
   const pushToast = useToastStore((s) => s.push);
 
   const [input, setInput] = useState('');
-  const [optimistic, setOptimistic] = useState<Message[]>([]);
   const [filesOpen, setFilesOpen] = useState(false);
 
+  const tempAssistantIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
 
@@ -35,14 +35,28 @@ export function ChatSessionPage() {
     enabled: !!id,
   });
 
-  const { state, start, abort, reset } = useChatStream(() => {
-    setOptimistic([]);
-    qc.invalidateQueries({ queryKey: ['messages', id] });
+  const { state, start, abort, reset } = useChatStream((finalContent, events) => {
+    const tempId = tempAssistantIdRef.current;
+    if (tempId) {
+      const contentToSave = finalContent || state.content;
+      qc.setQueryData<Message[]>(['messages', id], (old: Message[] = []) =>
+        old.map((m) =>
+          m.id === tempId
+            ? {
+                ...m,
+                content: contentToSave,
+                events: events || [],
+              }
+            : m
+        )
+      );
+    }
     qc.invalidateQueries({ queryKey: ['sessions'] });
+    tempAssistantIdRef.current = null;
   });
 
   useEffect(() => {
-    setOptimistic([]);
+    tempAssistantIdRef.current = null;
     setInput('');
     reset();
     return () => abort();
@@ -53,12 +67,6 @@ export function ChatSessionPage() {
     if (state.error) pushToast(state.error, 'error');
   }, [state.error, pushToast]);
 
-  const allMessages = useMemo(
-    () => [...messages, ...optimistic],
-    [messages, optimistic],
-  );
-
-  // Auto-scroll
   function handleScroll() {
     const el = scrollRef.current;
     if (!el) return;
@@ -71,20 +79,37 @@ export function ChatSessionPage() {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [allMessages, state.content, state.thinking, state.tools, state.isStreaming]);
+  }, [messages, state.content, state.thinking, state.tools, state.isStreaming]);
 
   function handleSubmit() {
     const content = input.trim();
     if (!content || !id) return;
+
     const userMsg: Message = {
-      id: `tmp_${Date.now()}`,
+      id: `tmp_user_${Date.now()}`,
       role: 'user',
       content,
       sessionId: id,
       userId: '',
       createdAt: new Date().toISOString(),
     };
-    setOptimistic([userMsg]);
+
+    const tempAssistantId = `tmp_assistant_${Date.now()}`;
+    tempAssistantIdRef.current = tempAssistantId;
+
+    const tempAssistantMsg: Message = {
+      id: tempAssistantId,
+      role: 'assistant',
+      content: '',
+      events: [],
+      sessionId: id,
+      userId: '',
+      createdAt: new Date().toISOString(),
+    };
+
+    const currentMessages = qc.getQueryData<Message[]>(['messages', id]) ?? [];
+    qc.setQueryData(['messages', id], [...currentMessages, userMsg, tempAssistantMsg]);
+
     setInput('');
     stickToBottomRef.current = true;
     start(id, content);
@@ -119,26 +144,40 @@ export function ChatSessionPage() {
           <div className="mx-auto max-w-3xl">
             {isLoading ? (
               <MessagesSkeleton />
-            ) : allMessages.length === 0 && !state.isStreaming ? (
+            ) : messages.length === 0 && !state.content ? (
               <EmptyState />
             ) : (
               <>
-                {allMessages.map((m) => (
-                  <ChatMessage
-                    key={m.id}
-                    role={m.role}
-                    content={m.content}
-                  />
-                ))}
-                {state.isStreaming && (
-                  <ChatMessage
-                    role="assistant"
-                    content={state.content}
-                    thinking={state.thinking}
-                    tools={state.tools}
-                    streaming
-                  />
-                )}
+                {messages.map((m) => {
+                  const isTempAssistant = m.id === tempAssistantIdRef.current;
+
+                  let displayContent = m.content;
+                  let displayThinking = '';
+                  let displayTools: any[] = [];
+                  let displayStreaming = false;
+
+                  if (isTempAssistant) {
+                    displayContent = state.content || m.content;
+                    displayThinking = state.thinking;
+                    displayTools = state.tools;
+                    displayStreaming = state.isStreaming;
+                  } else if (m.events) {
+                    const { thinking, tools } = eventsToState(m.events);
+                    displayThinking = thinking || '';
+                    displayTools = tools;
+                  }
+
+                  return (
+                    <ChatMessage
+                      key={m.id}
+                      role={m.role}
+                      content={displayContent}
+                      thinking={displayThinking || undefined}
+                      tools={displayTools.length ? displayTools : undefined}
+                      streaming={displayStreaming}
+                    />
+                  );
+                })}
               </>
             )}
           </div>

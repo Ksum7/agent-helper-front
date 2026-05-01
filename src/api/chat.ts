@@ -6,6 +6,8 @@ export const chatApi = {
   getSession: (id: string) => api.get<ChatSession>(`/chat/sessions/${id}`),
   createSession: (title: string) =>
     api.post<ChatSession>('/chat/sessions', { title }),
+  renameSession: (id: string, title: string) =>
+    api.patch<ChatSession>(`/chat/sessions/${id}`, { title }),
   deleteSession: (id: string) => api.delete<void>(`/chat/sessions/${id}`),
   listMessages: (id: string) =>
     api.get<Message[]>(`/chat/sessions/${id}/messages`),

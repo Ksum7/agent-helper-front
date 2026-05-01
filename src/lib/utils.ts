@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { StreamEvent, ToolCallState } from '@/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,3 +21,26 @@ export function formatDate(iso: string): string {
 }
 
 export const API_URL = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:3000';
+
+export function eventsToState(events: StreamEvent[]): { thinking: string; tools: ToolCallState[] } {
+  let thinking = '';
+  const tools: ToolCallState[] = [];
+
+  for (const event of events) {
+    if (event.type === 'thinking') {
+      thinking += event.content;
+    } else if (event.type === 'tool_call') {
+      const id = event.id ?? `tool_${tools.length}_${event.name}`;
+      tools.push({ id, name: event.name, args: event.args, done: false });
+    } else if (event.type === 'tool_result') {
+      for (let i = tools.length - 1; i >= 0; i--) {
+        if (tools[i].name === event.name && !tools[i].done) {
+          tools[i] = { ...tools[i], result: event.content, done: true };
+          break;
+        }
+      }
+    }
+  }
+
+  return { thinking, tools };
+}

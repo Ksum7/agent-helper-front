@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -6,6 +6,7 @@ import {
   LogOut,
   MessageSquarePlus,
   MessageSquare,
+  Pencil,
   Trash2,
   X,
   Loader2,
@@ -41,6 +42,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       qc.invalidateQueries({ queryKey: ['sessions'] });
       navigate(`/chat/${s.id}`);
       onClose();
+    },
+    onError: (e) => pushToast((e as Error).message, 'error'),
+  });
+
+  const renameSession = useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) =>
+      chatApi.renameSession(id, title),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ['sessions'] });
+      qc.invalidateQueries({ queryKey: ['session', id] });
     },
     onError: (e) => pushToast((e as Error).message, 'error'),
   });
@@ -124,6 +135,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   key={s.id}
                   session={s}
                   onDelete={() => deleteSession.mutate(s.id)}
+                  onRename={(title) => renameSession.mutate({ id: s.id, title })}
                   onClick={onClose}
                 />
               ))}
@@ -156,18 +168,42 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 function SessionItem({
   session,
   onDelete,
+  onRename,
   onClick,
 }: {
   session: ChatSession;
   onDelete: () => void;
+  onRename: (title: string) => void;
   onClick: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function startEdit(e: React.MouseEvent) {
+    e.preventDefault();
+    setEditTitle(session.title);
+    setEditing(true);
+    setTimeout(() => inputRef.current?.select(), 0);
+  }
+
+  function commitEdit() {
+    const trimmed = editTitle.trim();
+    if (trimmed && trimmed !== session.title) onRename(trimmed);
+    setEditing(false);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') { e.preventDefault(); commitEdit(); }
+    else if (e.key === 'Escape') setEditing(false);
+  }
+
   return (
     <li>
       <NavLink
         to={`/chat/${session.id}`}
-        onClick={onClick}
+        onClick={editing ? (e) => e.preventDefault() : onClick}
         className={({ isActive }) =>
           cn(
             'group flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10',
@@ -177,46 +213,62 @@ function SessionItem({
       >
         <MessageSquare className="h-4 w-4 shrink-0 opacity-60" />
         <div className="min-w-0 flex-1">
-          <div className="truncate">{session.title}</div>
-          <div className="text-xs text-white/40">
-            {formatDate(session.createdAt)}
-          </div>
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={handleKeyDown}
+              onClick={(e) => e.preventDefault()}
+              className="w-full rounded bg-white/10 px-1 py-0.5 text-sm text-white outline-none focus:ring-1 focus:ring-white/30"
+              autoFocus
+            />
+          ) : (
+            <>
+              <div className="truncate">{session.title}</div>
+              <div className="text-xs text-white/40">
+                {formatDate(session.createdAt)}
+              </div>
+            </>
+          )}
         </div>
-        {confirming ? (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onDelete();
-                setConfirming(false);
-              }}
-              className="rounded p-1 text-red-400 hover:bg-red-500/20"
-              title="Подтвердить"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                setConfirming(false);
-              }}
-              className="rounded p-1 text-white/60 hover:bg-white/10"
-              title="Отмена"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setConfirming(true);
-            }}
-            className="hidden rounded p-1 text-white/40 hover:bg-white/10 hover:text-white group-hover:block"
-            title="Удалить"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+        {!editing && (
+          confirming ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => { e.preventDefault(); onDelete(); setConfirming(false); }}
+                className="rounded p-1 text-red-400 hover:bg-red-500/20"
+                title="Подтвердить"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={(e) => { e.preventDefault(); setConfirming(false); }}
+                className="rounded p-1 text-white/60 hover:bg-white/10"
+                title="Отмена"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="hidden items-center gap-0.5 group-hover:flex">
+              <button
+                onClick={startEdit}
+                className="rounded p-1 text-white/40 hover:bg-white/10 hover:text-white"
+                title="Переименовать"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={(e) => { e.preventDefault(); setConfirming(true); }}
+                className="rounded p-1 text-white/40 hover:bg-white/10 hover:text-white"
+                title="Удалить"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )
         )}
       </NavLink>
     </li>

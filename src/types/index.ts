@@ -17,6 +17,7 @@ export interface Message {
   id: string;
   role: Role;
   content: string;
+  events?: StreamEvent[] | null;
   sessionId: string;
   userId: string;
   createdAt: string;

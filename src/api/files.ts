@@ -4,6 +4,8 @@ import type { FileRecord } from '@/types';
 
 export const filesApi = {
   list: () => api.get<FileRecord[]>('/files'),
+  listBySession: (sessionId: string) =>
+    api.get<FileRecord[]>(`/files?sessionId=${encodeURIComponent(sessionId)}`),
   upload: (file: File, sessionId?: string) => {
     const fd = new FormData();
     fd.append('file', file);

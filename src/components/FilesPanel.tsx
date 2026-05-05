@@ -47,16 +47,16 @@ export function FilesPanel({ sessionId, open, onClose }: Props) {
   const [dragOver, setDragOver] = useState(false);
 
   const { data: allFiles = [], isLoading } = useQuery({
-    queryKey: ['files'],
-    queryFn: filesApi.list,
+    queryKey: ['files', sessionId],
+    queryFn: () => filesApi.listBySession(sessionId),
   });
 
-  const sessionFiles = allFiles.filter((f) => f.sessionId === sessionId);
+  const sessionFiles = allFiles;
 
   const upload = useMutation({
     mutationFn: (file: File) => filesApi.upload(file, sessionId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['files'] });
+      qc.invalidateQueries({ queryKey: ['files', sessionId] });
       pushToast('Файл загружен', 'success');
     },
     onError: (e) => pushToast((e as Error).message, 'error'),
@@ -65,7 +65,7 @@ export function FilesPanel({ sessionId, open, onClose }: Props) {
   const remove = useMutation({
     mutationFn: (id: string) => filesApi.delete(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['files'] });
+      qc.invalidateQueries({ queryKey: ['files', sessionId] });
     },
     onError: (e) => pushToast((e as Error).message, 'error'),
   });
@@ -91,8 +91,8 @@ export function FilesPanel({ sessionId, open, onClose }: Props) {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-border bg-white transition-transform lg:static lg:translate-x-0',
-          open ? 'translate-x-0' : 'translate-x-full',
+          'fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-border bg-white transition-transform',
+          open ? 'translate-x-0 lg:static' : 'translate-x-full lg:hidden',
         )}
       >
         <div className="flex items-center justify-between border-b border-border p-4">
@@ -105,7 +105,7 @@ export function FilesPanel({ sessionId, open, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-text-muted hover:bg-bg-muted lg:hidden"
+            className="rounded p-1 text-text-muted hover:bg-bg-muted"
           >
             <X className="h-4 w-4" />
           </button>

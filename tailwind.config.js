@@ -6,23 +6,23 @@ export default {
     extend: {
       colors: {
         bg: {
-          DEFAULT: '#ffffff',
-          subtle: '#f7f7f8',
-          muted: '#ececf1',
+          DEFAULT: 'rgb(var(--color-bg) / <alpha-value>)',
+          subtle: 'rgb(var(--color-bg-subtle) / <alpha-value>)',
+          muted: 'rgb(var(--color-bg-muted) / <alpha-value>)',
         },
         sidebar: {
-          DEFAULT: '#171717',
-          hover: '#262626',
-          active: '#2d2d2d',
+          DEFAULT: 'var(--color-sidebar)',
+          hover: 'var(--color-sidebar-hover)',
+          active: 'var(--color-sidebar-active)',
         },
         border: {
-          DEFAULT: '#e5e7eb',
-          subtle: '#f0f0f0',
+          DEFAULT: 'var(--color-border)',
+          subtle: 'var(--color-border-subtle)',
         },
         text: {
-          DEFAULT: '#1f2328',
-          muted: '#6b7280',
-          subtle: '#9ca3af',
+          DEFAULT: 'var(--color-text)',
+          muted: 'var(--color-text-muted)',
+          subtle: 'var(--color-text-subtle)',
         },
         accent: {
           DEFAULT: '#10a37f',

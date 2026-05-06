@@ -40,11 +40,11 @@ export function ChatInput({
   const canSend = !!value.trim() && !disabled && !streaming;
 
   return (
-    <div className="border-t border-border bg-white">
+    <div className="border-t border-border bg-bg">
       <div className="mx-auto max-w-3xl px-4 py-3">
         <div
           className={cn(
-            'flex items-end gap-2 rounded-2xl border border-border bg-white px-3 py-2 shadow-sm transition-shadow focus-within:border-accent/40 focus-within:shadow-md',
+            'flex items-end gap-2 rounded-2xl border border-border bg-bg px-3 py-2 shadow-sm transition-shadow focus-within:border-accent/40 focus-within:shadow-md',
             disabled && 'opacity-60',
           )}
         >

@@ -91,7 +91,7 @@ export function FilesPanel({ sessionId, open, onClose }: Props) {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-border bg-white transition-transform',
+          'fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-border bg-bg transition-transform',
           open ? 'translate-x-0 lg:static' : 'translate-x-full lg:hidden',
         )}
       >
@@ -186,7 +186,7 @@ function FileItem({ file, onDelete }: { file: FileRecord; onDelete: () => void }
   const meta = MIME_LABELS[file.mimeType] ?? { label: '?', icon: FileIcon };
   const Icon = meta.icon;
   return (
-    <li className="group flex items-center gap-2 rounded-lg border border-border-subtle bg-white p-2 transition hover:border-border">
+    <li className="group flex items-center gap-2 rounded-lg border border-border-subtle bg-bg p-2 transition hover:border-border">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-bg-subtle">
         <Icon className="h-4 w-4 text-text-muted" />
       </div>
@@ -212,7 +212,7 @@ function FileItem({ file, onDelete }: { file: FileRecord; onDelete: () => void }
               onDelete();
               setConfirming(false);
             }}
-            className="rounded p-1.5 text-red-500 hover:bg-red-50"
+            className="rounded p-1.5 text-red-500 hover:bg-red-500/10"
             title="Подтвердить"
           >
             <Trash2 className="h-3.5 w-3.5" />

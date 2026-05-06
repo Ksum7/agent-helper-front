@@ -7,9 +7,9 @@ export function ChatLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white text-text">
+    <div className="flex h-screen overflow-hidden bg-bg text-text">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center gap-2 border-b border-border px-3 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}

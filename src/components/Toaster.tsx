@@ -3,9 +3,9 @@ import { useToastStore, type ToastVariant } from '@/store/toast';
 import { cn } from '@/lib/utils';
 
 const styles: Record<ToastVariant, string> = {
-  info: 'bg-white border-border text-text',
-  success: 'bg-white border-accent/30 text-text',
-  error: 'bg-white border-red-200 text-text',
+  info: 'bg-bg border-border text-text',
+  success: 'bg-bg border-accent/30 text-text',
+  error: 'bg-bg border-red-500/30 text-text',
 };
 
 const icons: Record<ToastVariant, React.ReactNode> = {

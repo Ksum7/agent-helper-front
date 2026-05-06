@@ -51,7 +51,7 @@ export function LoginPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-xl border border-border bg-bg p-6 shadow-sm"
         >
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Email</label>
@@ -76,7 +76,7 @@ export function LoginPage() {
             />
           </div>
           {error && (
-            <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-500">
               {error}
             </div>
           )}

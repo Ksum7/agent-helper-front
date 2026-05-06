@@ -102,7 +102,7 @@ export function ToolBadge({ tool }: { tool: ToolCallState }) {
           {tool.args !== undefined && (
             <div className="mb-2">
               <div className="mb-1 font-medium text-text">Аргументы</div>
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded bg-white p-2 font-mono text-[11px]">
+              <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded bg-bg-muted p-2 font-mono text-[11px]">
                 {typeof tool.args === 'string'
                   ? tool.args
                   : JSON.stringify(tool.args, null, 2)}
@@ -112,7 +112,7 @@ export function ToolBadge({ tool }: { tool: ToolCallState }) {
           {tool.result !== undefined && (
             <div>
               <div className="mb-1 font-medium text-text">Результат</div>
-              <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-white p-2 font-mono text-[11px]">
+              <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-bg-muted p-2 font-mono text-[11px]">
                 {tool.result}
               </pre>
             </div>

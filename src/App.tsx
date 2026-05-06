@@ -8,6 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/auth';
+import { useThemeStore } from '@/store/theme';
 import { ApiError } from '@/lib/api';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/Toaster';
@@ -29,6 +30,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function ThemeApplier() {
+  const theme = useThemeStore((s) => s.theme);
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+  return null;
+}
 
 function AuthBootstrap({ children }: { children: React.ReactNode }) {
   const setUser = useAuthStore((s) => s.setUser);
@@ -74,6 +83,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ThemeApplier />
         <AuthBootstrap>
           <Routes>
             <Route path="/login" element={<LoginPage />} />

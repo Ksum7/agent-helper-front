@@ -6,7 +6,9 @@ import {
   LogOut,
   MessageSquarePlus,
   MessageSquare,
+  Moon,
   Pencil,
+  Sun,
   Trash2,
   X,
   Loader2,
@@ -15,6 +17,7 @@ import { chatApi } from '@/api/chat';
 import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/auth';
 import { useToastStore } from '@/store/toast';
+import { useThemeStore } from '@/store/theme';
 import { cn, formatDate } from '@/lib/utils';
 import type { ChatSession } from '@/types';
 
@@ -30,6 +33,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const pushToast = useToastStore((s) => s.push);
+  const { theme, toggle } = useThemeStore();
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['sessions'],
@@ -151,6 +155,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{user?.email}</div>
             </div>
+            <button
+              onClick={toggle}
+              className="rounded-md p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button
               onClick={handleLogout}
               className="rounded-md p-1.5 text-white/60 hover:bg-white/10 hover:text-white"

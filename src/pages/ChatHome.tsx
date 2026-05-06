@@ -20,7 +20,7 @@ export function ChatHome() {
   });
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-bg-subtle/40 px-6">
+    <div className="flex flex-1 items-center justify-center px-6">
       <div className="max-w-md text-center">
         <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-white">
           <Bot className="h-7 w-7" />
